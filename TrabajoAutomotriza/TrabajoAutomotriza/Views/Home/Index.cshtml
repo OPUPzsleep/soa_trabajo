@@ -1,0 +1,242 @@
+﻿@{
+    ViewBag.Title = "Sistema de Gestión Automotriz";
+}
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 20px;
+        border-radius: 10px;
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .hero-section p {
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .service-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+
+    .service-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .service-card .card-body {
+        padding: 25px;
+    }
+
+    .service-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+
+    .service-card h5 {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .service-card p {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+    }
+
+    .btn-service {
+        background-color: #667eea;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 20px;
+        font-weight: 500;
+        transition: background-color 0.3s;
+    }
+
+    .btn-service:hover {
+        background-color: #764ba2;
+        color: white;
+        text-decoration: none;
+    }
+
+    .stats-section {
+        background-color: #f8f9fa;
+        padding: 30px;
+        border-radius: 10px;
+        margin-top: 40px;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .stat-label {
+        color: #666;
+        margin-top: 5px;
+    }
+</style>
+
+<main>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <h1>🚗 Sistema de Gestión Automotriz</h1>
+        <p>Administra tu taller mecánico de forma eficiente y profesional</p>
+    </section>
+
+    <!-- Servicios -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">Nuestros Servicios</h2>
+        <div class="row">
+            <!-- Autos -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card service-card">
+                    <div class="card-body">
+                        <div class="service-icon">🚙</div>
+                        <h5>Registro de Vehículos</h5>
+                        <p>Registra y gestiona todos los vehículos que ingresan a tu taller con información completa.</p>
+                        <a href="@Url.Action("Autos", "Servicios")" class="btn btn-service w-100">Ir al Servicio</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Presupuestos -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card service-card">
+                    <div class="card-body">
+                        <div class="service-icon">📋</div>
+                        <h5>Presupuestos</h5>
+                        <p>Crea presupuestos detallados con items y costos para tus clientes.</p>
+                        <a href="@Url.Action("Presupuestos", "Servicios")" class="btn btn-service w-100">Ir al Servicio</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Órdenes -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card service-card">
+                    <div class="card-body">
+                        <div class="service-icon">🔧</div>
+                        <h5>Órdenes de Mantenimiento</h5>
+                        <p>Gestiona el estado de las órdenes desde inicio hasta finalización.</p>
+                        <a href="@Url.Action("Ordenes", "Servicios")" class="btn btn-service w-100">Ir al Servicio</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Facturas -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card service-card">
+                    <div class="card-body">
+                        <div class="service-icon">📄</div>
+                        <h5>Facturación</h5>
+                        <p>Emite facturas profesionales basadas en los presupuestos aprobados.</p>
+                        <a href="@Url.Action("Facturas", "Servicios")" class="btn btn-service w-100">Ir al Servicio</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagos -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card service-card">
+                    <div class="card-body">
+                        <div class="service-icon">💳</div>
+                        <h5>Pagos</h5>
+                        <p>Registra y controla los pagos de tus clientes de forma segura.</p>
+                        <a href="@Url.Action("Pagos", "Servicios")" class="btn btn-service w-100">Ir al Servicio</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card service-card">
+                    <div class="card-body">
+                        <div class="service-icon">📊</div>
+                        <h5>Dashboard</h5>
+                        <p>Visualiza estadísticas y reportes de tu taller en tiempo real.</p>
+                        <a href="#" class="btn btn-service w-100">Próximamente</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Estadísticas -->
+    <section class="stats-section">
+        <h2 class="text-center mb-4">Estadísticas del Sistema</h2>
+        <div class="row">
+            <div class="col-md-3 col-sm-6 stat-item">
+                <div class="stat-number" id="stat-vehiculos">0</div>
+                <div class="stat-label">Vehículos Registrados</div>
+            </div>
+            <div class="col-md-3 col-sm-6 stat-item">
+                <div class="stat-number" id="stat-ordenes">0</div>
+                <div class="stat-label">Órdenes Activas</div>
+            </div>
+            <div class="col-md-3 col-sm-6 stat-item">
+                <div class="stat-number" id="stat-facturas">0</div>
+                <div class="stat-label">Facturas Emitidas</div>
+            </div>
+            <div class="col-md-3 col-sm-6 stat-item">
+                <div class="stat-number" id="stat-ingresos">S/ 0</div>
+                <div class="stat-label">Ingresos Totales</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Info -->
+    <section class="mt-5 text-center text-muted">
+        <p> 2025 - Sistema de Gestión Automotriz | Todos los derechos reservados</p>
+    </section>
+</main>
+
+@section scripts {
+    <script type="text/javascript">
+        $(function () {
+            function cargarEstadisticas() {
+                // Cargar vehículos
+                $.get('@Url.Content("~/api/autos")', function (data) {
+                    $('#stat-vehiculos').text(data.length);
+                });
+
+                // Cargar órdenes
+                $.get('@Url.Content("~/api/ordenes")', function (data) {
+                    var activas = data.filter(o => o.estado === 'En Progreso').length;
+                    $('#stat-ordenes').text(activas);
+                });
+
+                // Cargar facturas
+                $.get('@Url.Content("~/api/facturas")', function (data) {
+                    $('#stat-facturas').text(data.length);
+                    var ingresos = data.reduce((sum, f) => sum + f.totalFactura, 0);
+                    $('#stat-ingresos').text('S/ ' + ingresos.toFixed(2));
+                });
+            }
+
+            // Cargar al inicio y luego cada 5 segundos
+            cargarEstadisticas();
+            setInterval(cargarEstadisticas, 5000);
+        });
+    </script>
+}

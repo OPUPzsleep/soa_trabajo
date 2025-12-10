@@ -1,0 +1,231 @@
+@{
+    ViewBag.Title = "Presupuestos";
+}
+
+<h2>2. Servicio Presupuesto</h2>
+
+<div class="row mt-4">
+    <!-- Formulario (Izquierda) -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Generar Nueva Cotización</h5>
+                <form id="form-presupuesto">
+                    <div class="mb-3">
+                        <label for="idAutoPresupuesto" class="form-label">Seleccionar Vehículo</label>
+                        <select class="form-control" id="idAutoPresupuesto" required>
+                            <option value="">-- Selecciona un vehículo --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="descripcionProblema" class="form-label">Síntomas / Problema</label>
+                        <textarea class="form-control" id="descripcionProblema" rows="3" placeholder="cambio de pastillas, cambio de aceite, cambio de llantas"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Items / Repuestos</label>
+                        <div id="items-container">
+                            <!-- Los items se agregan aquí dinámicamente -->
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="btn-agregar-item">
+                            + Agregar Item
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6>Total: <strong>S/ <span id="total-presupuesto">0.00</span></strong></h6>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Crear Presupuesto</button>
+                </form>
+
+                <div id="mensaje-presupuesto" class="mt-3 d-none"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Presupuestos Recientes (Derecha) -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Presupuestos Recientes</h5>
+                <div id="presupuestos-lista">
+                    <p class="text-muted">Cargando presupuestos...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        $(function () {
+            var itemCount = 0;
+
+            // Cargar autos al iniciar
+            cargarAutos();
+            cargarPresupuestos();
+
+            // Agregar nuevo item
+            $("#btn-agregar-item").on("click", function () {
+                agregarItem();
+            });
+
+            // Registrar presupuesto
+            $("#form-presupuesto").on("submit", function (e) {
+                e.preventDefault();
+
+                var idAuto = parseInt($("#idAutoPresupuesto").val(), 10);
+                if (!idAuto) {
+                    alert("Selecciona un vehículo");
+                    return;
+                }
+
+                // Calcular monto total
+                var montoTotal = 0;
+                $(".item-precio").each(function () {
+                    var precio = parseFloat($(this).val()) || 0;
+                    montoTotal += precio;
+                });
+
+                if (montoTotal <= 0) {
+                    alert("Agrega al menos un item con precio");
+                    return;
+                }
+
+                // Por ahora, creamos una orden primero (simplificado)
+                // En un sistema real, buscarías una orden existente
+                var datos = {
+                    idAuto: idAuto,
+                    idCliente: 1, // Simplificado: usar cliente 1
+                    descripcionProblema: $("#descripcionProblema").val(),
+                    montoEstimado: montoTotal
+                };
+
+                $("#mensaje-presupuesto").removeClass("alert alert-success alert-danger").addClass("d-none");
+
+                $.ajax({
+                    url: '@Url.Content("~/api/presupuestos")',
+                    method: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    data: JSON.stringify(datos),
+                    success: function (respuesta) {
+                        $("#mensaje-presupuesto")
+                            .removeClass("d-none")
+                            .addClass("alert alert-success")
+                            .text("Presupuesto creado. ID: " + respuesta.idPresupuesto);
+
+                        $("#form-presupuesto")[0].reset();
+                        $("#items-container").empty();
+                        itemCount = 0;
+                        cargarPresupuestos();
+                    },
+                    error: function (xhr) {
+                        var mensaje = 'Error al crear el presupuesto.';
+                        if (xhr.responseJSON && xhr.responseJSON.Message) {
+                            mensaje = xhr.responseJSON.Message;
+                        }
+
+                        $("#mensaje-presupuesto")
+                            .removeClass("d-none")
+                            .addClass("alert alert-danger")
+                            .text(mensaje);
+                    }
+                });
+            });
+
+            // Función para cargar autos
+            function cargarAutos() {
+                $.ajax({
+                    url: '@Url.Content("~/api/autos")',
+                    method: 'GET',
+                    success: function (autos) {
+                        var select = $("#idAutoPresupuesto");
+                        select.find("option:not(:first)").remove();
+
+                        $.each(autos, function (index, auto) {
+                            var label = (auto.placa || '') + ' - ' + (auto.marca || '');
+                            select.append('<option value="' + auto.idAuto + '">' + label + '</option>');
+                        });
+                    }
+                });
+            }
+
+            // Función para agregar item
+            function agregarItem() {
+                itemCount++;
+                var itemHtml = '<div class="row mb-2 item-row" data-item="' + itemCount + '">' +
+                    '<div class="col-md-6">' +
+                    '<input type="text" class="form-control item-descripcion" placeholder="Descripción" />' +
+                    '</div>' +
+                    '<div class="col-md-4">' +
+                    '<div class="input-group">' +
+                    '<span class="input-group-text">S/</span>' +
+                    '<input type="number" step="0.01" class="form-control item-precio" placeholder="0.00" min="0" />' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="col-md-2">' +
+                    '<button type="button" class="btn btn-sm btn-danger btn-eliminar-item">🗑</button>' +
+                    '</div>' +
+                    '</div>';
+
+                $("#items-container").append(itemHtml);
+
+                // Evento para eliminar item
+                $(".btn-eliminar-item").last().on("click", function () {
+                    $(this).closest(".item-row").remove();
+                    actualizarTotal();
+                });
+
+                // Evento para actualizar total
+                $(".item-precio").last().on("change", function () {
+                    actualizarTotal();
+                });
+            }
+
+            // Función para actualizar total
+            function actualizarTotal() {
+                var total = 0;
+                $(".item-precio").each(function () {
+                    var precio = parseFloat($(this).val()) || 0;
+                    total += precio;
+                });
+                $("#total-presupuesto").text(total.toFixed(2));
+            }
+
+            // Función para cargar presupuestos
+            function cargarPresupuestos() {
+                $.ajax({
+                    url: '@Url.Content("~/api/presupuestos")',
+                    method: 'GET',
+                    success: function (presupuestos) {
+                        var lista = $("#presupuestos-lista");
+                        lista.empty();
+
+                        if (presupuestos.length === 0) {
+                            lista.append('<p class="text-muted">No hay presupuestos registrados</p>');
+                        } else {
+                            $.each(presupuestos, function (index, presupuesto) {
+                                var estado = presupuesto.estado || 'Pendiente';
+                                var badgeClass = estado === 'Aprobado' ? 'bg-success' : 'bg-warning';
+                                var html = '<div class="card mb-3">' +
+                                    '<div class="card-body">' +
+                                    '<h6 class="card-title">' + (presupuesto.placa || 'Auto') + ' - ' + (presupuesto.marca || '') + '</h6>' +
+                                    '<p class="card-text text-muted small">' + (presupuesto.descripcionProblema || 'Sin descripción') + '</p>' +
+                                    '<div class="d-flex justify-content-between">' +
+                                    '<span><strong>S/ ' + (presupuesto.montoEstimado || 0).toFixed(2) + '</strong></span>' +
+                                    '<small class="text-muted">' + (presupuesto.fechaPresupuesto || '') + '</small>' +
+                                    '</div>' +
+                                    '<span class="badge ' + badgeClass + ' mt-2">' + estado.toUpperCase() + '</span>' +
+                                    '</div>' +
+                                    '</div>';
+                                lista.append(html);
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+}

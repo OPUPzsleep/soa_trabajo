@@ -1,0 +1,186 @@
+@{
+    ViewBag.Title = "Mantenimiento y Órdenes";
+}
+
+<h2>3. Servicio Mantenimiento y Órdenes</h2>
+
+<div class="mt-4">
+    <!-- Presupuestos Pendientes -->
+    <div class="mb-5">
+        <h5 class="mb-3">Presupuestos Pendientes de Aprobación</h5>
+        <div id="presupuestos-pendientes">
+            <p class="text-muted">No hay presupuestos pendientes.</p>
+        </div>
+    </div>
+
+    <!-- Órdenes en Progreso -->
+    <div class="mb-5">
+        <h5 class="mb-3">🔧 Órdenes en Progreso</h5>
+        <div id="ordenes-progreso">
+            <p class="text-muted">No hay vehículos en reparación actualmente.</p>
+        </div>
+    </div>
+
+    <!-- Historial de Órdenes Completadas -->
+    <div class="mb-5">
+        <h5 class="mb-3">✅ Historial de Órdenes Completadas</h5>
+        <div id="ordenes-completadas">
+            <p class="text-muted">No hay órdenes completadas.</p>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        $(function () {
+            // Cargar datos al iniciar
+            cargarPresupuestos();
+            cargarOrdenes();
+
+            // Actualizar cada 5 segundos
+            setInterval(function () {
+                cargarPresupuestos();
+                cargarOrdenes();
+            }, 5000);
+
+            // Función para cargar presupuestos pendientes
+            function cargarPresupuestos() {
+                $.ajax({
+                    url: '@Url.Content("~/api/presupuestos")',
+                    method: 'GET',
+                    success: function (presupuestos) {
+                        var div = $("#presupuestos-pendientes");
+                        div.empty();
+
+                        var pendientes = presupuestos.filter(function (p) { return p.estado === 'Pendiente'; });
+
+                        if (pendientes.length === 0) {
+                            div.append('<p class="text-muted">No hay presupuestos pendientes.</p>');
+                        } else {
+                            $.each(pendientes, function (index, presupuesto) {
+                                var html = '<div class="card mb-3 bg-light" style="border-left: 4px solid #ffc107;">' +
+                                    '<div class="card-body">' +
+                                    '<div class="d-flex justify-content-between align-items-start">' +
+                                    '<div>' +
+                                    '<h6 class="card-title">Orden: #' + presupuesto.idOrden + '</h6>' +
+                                    '<p class="card-text text-muted">' + presupuesto.placa + ' - ' + presupuesto.marca + '</p>' +
+                                    '<p class="card-text"><strong>S/ ' + (presupuesto.montoEstimado || 0).toFixed(2) + '</strong></p>' +
+                                    '</div>' +
+                                    '<button class="btn btn-primary btn-sm btn-aprobar" data-id-presupuesto="' + presupuesto.idPresupuesto + '">' +
+                                    'Aprobar e iniciar orden' +
+                                    '</button>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>';
+                                div.append(html);
+                            });
+
+                            // Eventos para aprobar
+                            $(".btn-aprobar").on("click", function () {
+                                var idPresupuesto = $(this).data("id-presupuesto");
+                                aprobarPresupuesto(idPresupuesto);
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Función para aprobar presupuesto (cambia estado a Aprobado y orden a En Progreso)
+            function aprobarPresupuesto(idPresupuesto) {
+                $.ajax({
+                    url: '@Url.Content("~/api/presupuestos")' + '/' + idPresupuesto + '/aprobar',
+                    method: 'PUT',
+                    success: function () {
+                        cargarPresupuestos();
+                        cargarOrdenes();
+                    },
+                    error: function () {
+                        alert('Error al aprobar el presupuesto');
+                    }
+                });
+            }
+
+            // Función para cargar órdenes
+            function cargarOrdenes() {
+                $.ajax({
+                    url: '@Url.Content("~/api/ordenes")',
+                    method: 'GET',
+                    success: function (ordenes) {
+                        // Separar por estado
+                        var enProgreso = ordenes.filter(o => o.estado === 'En Progreso');
+                        var completadas = ordenes.filter(o => o.estado === 'Completada');
+
+                        // Mostrar órdenes en progreso
+                        var divProgreso = $("#ordenes-progreso");
+                        divProgreso.empty();
+
+                        if (enProgreso.length === 0) {
+                            divProgreso.append('<p class="text-muted">No hay vehículos en reparación actualmente.</p>');
+                        } else {
+                            $.each(enProgreso, function (index, orden) {
+                                var html = '<div class="card mb-3">' +
+                                    '<div class="card-body">' +
+                                    '<div class="d-flex justify-content-between align-items-start">' +
+                                    '<div>' +
+                                    '<h6 class="card-title">Orden #' + orden.idOrden + '</h6>' +
+                                    '<p class="card-text text-muted">' + orden.placa + ' - ' + orden.marca + '</p>' +
+                                    '<p class="card-text"><small>' + orden.descripcionProblema + '</small></p>' +
+                                    '<small class="text-muted">Inicio: ' + new Date(orden.fechaOrden).toLocaleString() + '</small>' +
+                                    '</div>' +
+                                    '<button class="btn btn-success btn-sm btn-finalizar" data-id="' + orden.idOrden + '">✓ Finalizar Mantenimiento</button>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>';
+                                divProgreso.append(html);
+                            });
+
+                            // Eventos para finalizar orden
+                            $(".btn-finalizar").on("click", function () {
+                                var idOrden = $(this).data("id");
+                                finalizarOrden(idOrden);
+                            });
+                        }
+
+                        // Mostrar órdenes completadas
+                        var divCompletadas = $("#ordenes-completadas");
+                        divCompletadas.empty();
+
+                        if (completadas.length === 0) {
+                            divCompletadas.append('<p class="text-muted">No hay órdenes completadas.</p>');
+                        } else {
+                            $.each(completadas, function (index, orden) {
+                                var html = '<div class="card mb-2">' +
+                                    '<div class="card-body">' +
+                                    '<div class="d-flex justify-content-between">' +
+                                    '<div>' +
+                                    '<h6 class="card-title">Orden #' + orden.idOrden + '</h6>' +
+                                    '<p class="card-text text-muted">' + orden.placa + ' - ' + orden.marca + '</p>' +
+                                    '<small class="text-muted">Completada: ' + new Date(orden.fechaFinalizacion).toLocaleString() + '</small>' +
+                                    '</div>' +
+                                    '<span class="badge bg-success">COMPLETADA</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>';
+                                divCompletadas.append(html);
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Función para finalizar orden
+            function finalizarOrden(idOrden) {
+                $.ajax({
+                    url: '@Url.Content("~/api/ordenes")' + '/' + idOrden,
+                    method: 'PUT',
+                    success: function (respuesta) {
+                        cargarOrdenes();
+                    },
+                    error: function () {
+                        alert('Error al finalizar la orden');
+                    }
+                });
+            }
+        });
+    </script>
+}
