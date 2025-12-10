@@ -1,0 +1,161 @@
+@{
+    ViewBag.Title = "Facturación";
+}
+
+<h2>4. Servicio Facturación</h2>
+
+<div class="row mt-4">
+    <!-- Órdenes Finalizadas (Izquierda) -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Órdenes Finalizadas (Pendientes de Factura)</h5>
+                <div id="ordenes-finalizadas">
+                    <p class="text-muted">No hay órdenes finalizadas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Facturas Emitidas (Derecha) -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Facturas Emitidas</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID Factura</th>
+                                <th>Fecha</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-facturas">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No hay facturas emitidas.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        $(function () {
+            // Cargar datos al iniciar
+            cargarOrdenes();
+            cargarFacturas();
+
+            // Actualizar cada 5 segundos
+            setInterval(function () {
+                cargarOrdenes();
+                cargarFacturas();
+            }, 5000);
+
+            // Función para cargar órdenes finalizadas
+            function cargarOrdenes() {
+                $.ajax({
+                    url: '@Url.Content("~/api/ordenes")',
+                    method: 'GET',
+                    success: function (ordenes) {
+                        var finalizadas = ordenes.filter(o => o.estado === 'Completada');
+                        var div = $("#ordenes-finalizadas");
+                        div.empty();
+
+                        if (finalizadas.length === 0) {
+                            div.append('<p class="text-muted">No hay órdenes finalizadas.</p>');
+                        } else {
+                            $.each(finalizadas, function (index, orden) {
+                                var html = '<div class="card mb-3 bg-light">' +
+                                    '<div class="card-body">' +
+                                    '<h6 class="card-title">Orden: #' + orden.idOrden + '</h6>' +
+                                    '<p class="card-text text-muted">' + orden.placa + ' - ' + orden.marca + '</p>' +
+                                    '<p class="card-text"><strong>S/ ' + (orden.montoEstimado || 0).toFixed(2) + '</strong></p>' +
+                                    '<button class="btn btn-dark btn-sm w-100 btn-generar-factura" data-id-orden="' + orden.idOrden + '" data-monto="' + (orden.montoEstimado || 0) + '">' +
+                                    '📄 Generar Factura' +
+                                    '</button>' +
+                                    '</div>' +
+                                    '</div>';
+                                div.append(html);
+                            });
+
+                            // Eventos para generar factura
+                            $(".btn-generar-factura").on("click", function () {
+                                var idOrden = $(this).data("id-orden");
+                                var monto = parseFloat($(this).data("monto"));
+                                generarFactura(idOrden, monto);
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Función para cargar facturas
+            function cargarFacturas() {
+                $.ajax({
+                    url: '@Url.Content("~/api/facturas")',
+                    method: 'GET',
+                    success: function (facturas) {
+                        var tbody = $("#tbody-facturas");
+                        tbody.empty();
+
+                        if (facturas.length === 0) {
+                            tbody.append('<tr><td colspan="4" class="text-center text-muted">No hay facturas emitidas.</td></tr>');
+                        } else {
+                            $.each(facturas, function (index, factura) {
+                                var badgeClass = factura.estado === 'Pagada' ? 'bg-success' : 'bg-warning';
+                                var fila = '<tr>' +
+                                    '<td>' + factura.idFactura + '</td>' +
+                                    '<td>' + new Date(factura.fechaFactura).toLocaleDateString() + '</td>' +
+                                    '<td><strong>$' + factura.totalFactura.toFixed(2) + '</strong></td>' +
+                                    '<td><span class="badge ' + badgeClass + '">' + factura.estado + '</span></td>' +
+                                    '</tr>';
+                                tbody.append(fila);
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Función para generar factura
+            function generarFactura(idOrden, monto) {
+                // Buscar presupuesto asociado a la orden
+                $.ajax({
+                    url: '@Url.Content("~/api/presupuestos")',
+                    method: 'GET',
+                    success: function (presupuestos) {
+                        var presupuesto = presupuestos.find(p => p.idOrden === idOrden);
+                        if (!presupuesto) {
+                            alert('No hay presupuesto asociado a esta orden');
+                            return;
+                        }
+
+                        var datos = {
+                            idPresupuesto: presupuesto.idPresupuesto,
+                            totalFactura: monto
+                        };
+
+                        $.ajax({
+                            url: '@Url.Content("~/api/facturas")',
+                            method: 'POST',
+                            contentType: 'application/json; charset=utf-8',
+                            data: JSON.stringify(datos),
+                            success: function (respuesta) {
+                                cargarOrdenes();
+                                cargarFacturas();
+                            },
+                            error: function () {
+                                alert('Error al generar la factura');
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+}
