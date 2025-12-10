@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrabajoAutomotriza", "TrabajoAutomotriza\TrabajoAutomotriza.csproj", "{24A913D1-6FE9-49CB-9757-B5F3E681A35D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrabajoAutomotriza.Tests", "TrabajoAutomotriza.Tests\TrabajoAutomotriza.Tests.csproj", "{F9ECCA7E-4081-4976-9F31-28B79BB73830}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{24A913D1-6FE9-49CB-9757-B5F3E681A35D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24A913D1-6FE9-49CB-9757-B5F3E681A35D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24A913D1-6FE9-49CB-9757-B5F3E681A35D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24A913D1-6FE9-49CB-9757-B5F3E681A35D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9ECCA7E-4081-4976-9F31-28B79BB73830}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9ECCA7E-4081-4976-9F31-28B79BB73830}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9ECCA7E-4081-4976-9F31-28B79BB73830}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9ECCA7E-4081-4976-9F31-28B79BB73830}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {105CB117-B312-4AAC-B25F-C6A29DE5548A}
+	EndGlobalSection
+EndGlobal

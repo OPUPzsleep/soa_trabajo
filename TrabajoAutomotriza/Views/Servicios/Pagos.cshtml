@@ -1,0 +1,175 @@
+@{
+    ViewBag.Title = "Pagos";
+}
+
+<h2>5. Servicio de Pago</h2>
+
+<div class="row mt-4">
+    <!-- Caja - Facturas Pendientes -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Caja - Facturas Pendientes</h5>
+                <div id="facturas-pendientes">
+                    <p class="text-muted">Cargando facturas pendientes...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Pago -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Procesar Pago</h5>
+
+                <div id="detalle-factura" class="mb-3 text-muted">
+                    Selecciona una factura pendiente para procesar el pago.
+                </div>
+
+                <div id="monto-container" class="d-flex justify-content-between align-items-center mb-3" style="display:none;">
+                    <span class="text-muted">Importe a pagar</span>
+                    <h3 class="mb-0" id="monto-pagar-display">S/0.00</h3>
+                </div>
+
+                <input type="hidden" id="idFacturaPago" />
+                <input type="hidden" id="montoPagado" />
+
+                <div class="mb-3">
+                    <label class="form-label d-block">Método de pago</label>
+                    <span class="badge bg-success">Efectivo</span>
+                </div>
+
+                <button type="button" class="btn btn-dark w-100" id="btn-procesar-pago" disabled>Procesar Pago</button>
+
+                <div id="mensaje-pago" class="mt-3 d-none"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        $(function () {
+            var facturaSeleccionada = null;
+
+            cargarFacturasPendientes();
+
+            // Cargar facturas emitidas (pendientes de pago)
+            function cargarFacturasPendientes() {
+                $.ajax({
+                    url: '@Url.Content("~/api/facturas")',
+                    method: 'GET',
+                    success: function (facturas) {
+                        var contenedor = $("#facturas-pendientes");
+                        contenedor.empty();
+
+                        var pendientes = facturas.filter(function (f) { return f.estado === 'Emitida'; });
+
+                        if (pendientes.length === 0) {
+                            contenedor.append('<p class="text-muted">No hay facturas pendientes de pago.</p>');
+                            return;
+                        }
+
+                        $.each(pendientes, function (index, factura) {
+                            var descripcionAuto = (factura.marca || '') + ' (' + (factura.placa || '') + ')';
+                            var montoTexto = 'S/' + factura.totalFactura.toFixed(2);
+
+                            var card = '<div class="card mb-3 factura-item" data-id="' + factura.idFactura + '" data-monto="' + factura.totalFactura + '" data-descripcion="' + descripcionAuto + '">' +
+                                '<div class="card-body d-flex justify-content-between align-items-center">' +
+                                '<div>' +
+                                '<div class="text-muted small">FACTURA #' + factura.idFactura + '</div>' +
+                                '<div>' + descripcionAuto + '</div>' +
+                                '</div>' +
+                                '<div class="h4 mb-0">' + montoTexto + '</div>' +
+                                '</div>' +
+                                '</div>';
+
+                            contenedor.append(card);
+                        });
+
+                        $(".factura-item").on("click", function () {
+                            seleccionarFactura($(this));
+                        });
+                    },
+                    error: function () {
+                        $("#facturas-pendientes").html('<p class="text-danger">Error al cargar facturas pendientes.</p>');
+                    }
+                });
+            }
+
+            // Seleccionar una factura
+            function seleccionarFactura($item) {
+                $(".factura-item").removeClass("border-primary");
+                $item.addClass("border-primary");
+
+                var id = $item.data("id");
+                var monto = parseFloat($item.data("monto"));
+                var descripcion = $item.data("descripcion");
+
+                facturaSeleccionada = {
+                    idFactura: id,
+                    monto: monto,
+                    descripcion: descripcion
+                };
+
+                $("#idFacturaPago").val(id);
+                $("#montoPagado").val(monto.toFixed(2));
+                $("#detalle-factura").text('FACTURA #' + id + ' - ' + descripcion);
+                $("#monto-pagar-display").text('S/' + monto.toFixed(2));
+                $("#monto-container").show();
+                $("#btn-procesar-pago").prop("disabled", false);
+
+                $("#mensaje-pago").removeClass("alert alert-success alert-danger").addClass("d-none");
+            }
+
+            // Procesar pago
+            $("#btn-procesar-pago").on("click", function () {
+                if (!facturaSeleccionada) {
+                    return;
+                }
+
+                var datos = {
+                    idFactura: parseInt($("#idFacturaPago").val(), 10),
+                    montoPagado: parseFloat($("#montoPagado").val())
+                };
+
+                $("#mensaje-pago").removeClass("alert alert-success alert-danger").addClass("d-none");
+
+                $.ajax({
+                    url: '@Url.Content("~/api/pagos")',
+                    method: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    data: JSON.stringify(datos),
+                    success: function (respuesta) {
+                        $("#mensaje-pago")
+                            .removeClass("d-none")
+                            .addClass("alert alert-success")
+                            .text("Pago procesado. ID: " + respuesta.idPago + " - Factura " + respuesta.estadoFactura + ".");
+
+                        facturaSeleccionada = null;
+                        $("#idFacturaPago").val("");
+                        $("#montoPagado").val("");
+                        $("#detalle-factura").text("Selecciona una factura pendiente para procesar el pago.");
+                        $("#monto-container").hide();
+                        $("#btn-procesar-pago").prop("disabled", true);
+
+                        cargarFacturasPendientes();
+                    },
+                    error: function (xhr) {
+                        var mensaje = 'Error al procesar el pago.';
+                        if (xhr.responseJSON && xhr.responseJSON.Message) {
+                            mensaje = xhr.responseJSON.Message;
+                        }
+
+                        $("#mensaje-pago")
+                            .removeClass("d-none")
+                            .addClass("alert alert-danger")
+                            .text(mensaje);
+                    }
+                });
+            });
+        });
+    </script>
+}
+

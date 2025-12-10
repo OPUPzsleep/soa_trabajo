@@ -1,0 +1,24 @@
+## Visual Studio
+.vs/
+
+## User-specific files
+*.user
+*.suo
+
+## Build results
+[Bb]in/
+[Oo]bj/
+
+## Rider
+.idea/
+
+## Mac
+.DS_Store
+
+## Packages
+packages/
+*.nupkg
+
+## App_Data
+/TrabajoAutomotriza/App_Data/*.mdf
+/TrabajoAutomotriza/App_Data/*.ldf
